@@ -1,0 +1,148 @@
+﻿@model (List<string> Animals, List<string> Food, List<string> Fruits, List<UserModel> Users)
+
+@{
+    ViewData["Title"] = "TSD2491 – Oblig1";
+    int itemsPerRow = 4; // Number of items per row
+}
+
+<div class="text-center">
+    <h1 class="display-4">TSD2491 – Oblig1</h1>
+
+    <form method="post" action="@Url.Action("RegisterUser", "Home")">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" required>
+        <input type="submit" value="Register">
+    </form>
+
+    <ol>
+        @foreach(var user in Model.Users.OrderByDescending(u => u.GamesPlayed))
+        {
+            <li>@user.Username (@user.GamesPlayed games played)</li>
+        }
+    </ol>
+
+    <div class="alert alert-info">
+        @ViewBag.MatchResult
+    </div>
+
+    <div id="game-state-message">
+        @if (ViewBag.GameState == "NotStarted")
+        {
+            <p>Click an icon to start the game.</p>
+        }
+        else if (ViewBag.GameState == "Running")
+        {
+            <p>Game Running...</p>
+        }
+        else if (ViewBag.GameState == "Completed")
+        {
+            <p>Game Complete!</p>
+        }
+    </div>
+
+    <div id="emoji-game-area">
+        <h2>Animals</h2>
+        <div class="emoji-row">
+            @for (int i = 0; i < Model.Animals.Count; i++)
+            {
+                <button type="button" class="emoji-button" onclick="selectEmoji(this);">@Model.Animals[i]</button>
+                if ((i + 1) % itemsPerRow == 0)
+                {
+                    @:</div><div class="emoji-row">
+                }
+            }
+        </div>
+        
+        <h2>Food</h2>
+        <div class="emoji-row">
+            @for (int i = 0; i < Model.Food.Count; i++)
+            {
+                <button type="button" class="emoji-button" onclick="selectEmoji(this);">@Model.Food[i]</button>
+                if ((i + 1) % itemsPerRow == 0)
+                {
+                    @:</div><div class="emoji-row">
+                }
+            }
+        </div>
+        
+        <h2>Fruits</h2>
+        <div class="emoji-row">
+            @for (int i = 0; i < Model.Fruits.Count; i++)
+            {
+                <button type="button" class="emoji-button" onclick="selectEmoji(this);">@Model.Fruits[i]</button>
+                if ((i + 1) % itemsPerRow == 0)
+                {
+                    @:</div><div class="emoji-row">
+                }
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .emoji-row {
+        margin-bottom: 10px;
+    }
+    .emoji-button {
+        border: 2px solid #000;
+        padding: 10px;
+        display: inline-block;
+        font-size: 32px;
+        cursor: pointer;
+        margin: 5px;
+        background: none;
+        outline: none;
+        width: 64px; /* Ensure buttons are square */
+        height: 64px; /* Ensure buttons are square */
+    }
+    .selected {
+        border-color: red;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        var firstSelectedEmoji = null;
+        var firstSelectedButton = null;
+
+        function selectEmoji(emojiButton) {
+            if (!firstSelectedEmoji) {
+                firstSelectedEmoji = emojiButton.textContent;
+                firstSelectedButton = emojiButton;
+                emojiButton.classList.add('selected');
+            } else {
+                if (firstSelectedEmoji === emojiButton.textContent) {
+                    // Post the two selected emojis to the server if they match
+                    postEmojis(firstSelectedEmoji, emojiButton.textContent);
+                } else {
+                    // If they don't match, clear the selection
+                    firstSelectedButton.classList.remove('selected');
+                    firstSelectedEmoji = null;
+                    firstSelectedButton = null;
+                }
+            }
+        }
+
+        function postEmojis(emoji1, emoji2) {
+            // Create a form and submit it to post the data
+            const form = document.createElement('form');
+            form.method = 'post';
+            form.action = '@Url.Action("Index", "Home")';
+
+            const input1 = document.createElement('input');
+            input1.type = 'hidden';
+            input1.name = 'selectedEmoji1';
+            input1.value = emoji1;
+            form.appendChild(input1);
+
+            const input2 = document.createElement('input');
+            input2.type = 'hidden';
+            input2.name = 'selectedEmoji2';
+            input2.value = emoji2;
+            form.appendChild(input2);
+
+            document.body.appendChild(form);
+            form.submit();
+        }
+    </script>
+}
